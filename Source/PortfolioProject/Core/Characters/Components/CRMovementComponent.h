@@ -19,8 +19,9 @@ public:
 	float GetCurrentMaxWalkSpeed () const {return MaxWalkSpeed;}
 	bool GetIsSprinting () const {return bIsSprintingCondition;}
 
-	void ChangeSprintCondition (bool bIsSprinting=false);
-	
+	void ChangeSprintCondition (bool bIsSprinting=false, float NewSpeed=0.0f);
+	void SetDefaultMaxWalkSpeed (float NewSpeed);
+
 
 	
 protected:
@@ -32,5 +33,8 @@ protected:
 private:
 
 	bool bIsSprintingCondition = false;
+
+	float BaseWalkSpeed;
+
 	
 };

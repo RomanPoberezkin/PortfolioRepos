@@ -39,6 +39,8 @@ protected:
 	void LookUp (float Value);
 	void StartSprint ();
 	void EndSprint ();
+	void Jump ();
+	
 
 	
 private:

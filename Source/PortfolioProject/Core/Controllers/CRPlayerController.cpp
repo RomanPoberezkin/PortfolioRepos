@@ -27,6 +27,8 @@ void ACRPlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("Sprint", IE_Pressed, this , &ACRPlayerController::StartSprint);
 	InputComponent->BindAction("Sprint", IE_Released, this , &ACRPlayerController::EndSprint);
+	
+	InputComponent->BindAction("Jump", IE_Pressed, this , &ACRPlayerController::Jump);
 
 
 	
@@ -69,7 +71,7 @@ void ACRPlayerController::StartSprint()
 {
 	if (CharacterOwner)
 	{
-		CharacterOwner->ChangeSprintCondition(true);
+		CharacterOwner->StartSprint();
 	}
 }
 
@@ -77,8 +79,16 @@ void ACRPlayerController::EndSprint()
 {
 	if (CharacterOwner)
 	{
-		CharacterOwner->ChangeSprintCondition(false);
+		CharacterOwner->EndSprint();
 	}
+}
+
+void ACRPlayerController::Jump()
+{
+	if (CharacterOwner)
+	{
+		CharacterOwner->Jump();
+	}	
 }
 
 void ACRPlayerController::Sprint(bool bIsSprinting)

@@ -3,6 +3,7 @@
 
 #include "CRBaseCharacter.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CRCharacterAttributeComponent.h"
 #include "Components/CRMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -13,6 +14,9 @@ ACRBaseCharacter::ACRBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	PrimaryActorTick.bCanEverTick = true;
 	
 	CharacterMovementComponent = Cast<UCRMovementComponent>(GetCharacterMovement());
+	
+	AttributeComponent=CreateDefaultSubobject<UCRCharacterAttributeComponent>(TEXT("CharacterAttributes"));
+
 	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -27,7 +31,9 @@ ACRBaseCharacter::ACRBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	CameraComponent -> bUsePawnControlRotation = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = 1;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);	
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
+
+	
 
 	
 }
@@ -42,6 +48,13 @@ UCRMovementComponent* ACRBaseCharacter::GetCharacterMovementComponent() const
 void ACRBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (AttributeComponent)
+	{
+		AttributeComponent->OnStaminaEndEvent.AddUObject(this, &ACRBaseCharacter::StaminaEnd);
+		CharacterMovementComponent->SetDefaultMaxWalkSpeed(AttributeComponent->GetCurrentWalkSpeed());
+	}
+	
 	
 }
 
@@ -85,8 +98,39 @@ void ACRBaseCharacter::LookUp(float Value)
 	AddControllerPitchInput(Value);
 }
 
+void ACRBaseCharacter::Jump()
+{
+	Super::Jump();
+}
+
+void ACRBaseCharacter::StartSprint()
+{
+	if (!AttributeComponent->GetIsStaminaEnd())
+	{
+		float NewSpeed = AttributeComponent->GetCurrentSprintSpeed();
+		GetCharacterMovementComponent()->ChangeSprintCondition(true, NewSpeed);
+	}
+	
+}
+
+void ACRBaseCharacter::EndSprint()
+{
+	float NewSpeed = AttributeComponent->GetCurrentWalkSpeed();
+	GetCharacterMovementComponent()->ChangeSprintCondition(false, NewSpeed);
+}
+
 void ACRBaseCharacter::ChangeSprintCondition(bool bISSprinting)
 {
-		GetCharacterMovementComponent()->ChangeSprintCondition(bISSprinting);
+
+	
+		
+}
+
+void ACRBaseCharacter::StaminaEnd(bool StaminaEnd)
+{
+	if (StaminaEnd)
+	{
+		EndSprint();
+	}
 }
 

@@ -3,10 +3,19 @@
 
 #include "CRMovementComponent.h"
 
-void UCRMovementComponent::ChangeSprintCondition(bool bIsSprinting)
+void UCRMovementComponent::ChangeSprintCondition(bool bIsSprinting, float NewSpeed)
 {
 	
 	bIsSprintingCondition=bIsSprinting;
-	float NewSpeed = bIsSprinting ? MaxWalkSpeed + SprintSpeedDelta : MaxWalkSpeed -SprintSpeedDelta;
-	MaxWalkSpeed =NewSpeed;	
+	MaxWalkSpeed = NewSpeed;
+	
+
+	//TODO Add Stamina use function delegate
+}
+
+void UCRMovementComponent::SetDefaultMaxWalkSpeed(float NewSpeed)
+{
+	
+	MaxWalkSpeed=NewSpeed;
+	BaseWalkSpeed=MaxWalkSpeed;
 }
