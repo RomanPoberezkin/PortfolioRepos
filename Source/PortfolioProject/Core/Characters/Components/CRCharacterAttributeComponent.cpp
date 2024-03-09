@@ -27,6 +27,9 @@ void UCRCharacterAttributeComponent::SetDefaults()
 	CurrentStamina = MaxStamina;
 	CurrentWalkSpeed=BaseWalkSpeed;
 	CurrentSprintSpeed=BaseSprintSpeed;
+	CurrentCrouchSpeed=BaseCrouchSpeed;
+	CurrentProneSpeed = BaseProneSpeed;
+	
 }
 
 

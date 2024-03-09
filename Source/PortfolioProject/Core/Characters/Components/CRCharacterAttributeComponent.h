@@ -52,6 +52,11 @@ protected:
 	UPROPERTY (EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes | Speed", meta = (ClampMin=0.0, UIMin = 0.0))
 	float BaseSprintSpeed = 1000.0f;
 
+	UPROPERTY (EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes | Speed", meta = (ClampMin=0.0, UIMin = 0.0))
+	float BaseCrouchSpeed=300;
+
+	UPROPERTY (EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes | Speed", meta = (ClampMin=0.0, UIMin = 0.0))
+	float BaseProneSpeed = 150;
 	
 
 	
@@ -76,7 +81,10 @@ private:
 
 	float CurrentWalkSpeed;
 	float CurrentSprintSpeed;
-	
+	float CurrentCrouchSpeed;
+	float CurrentProneSpeed;
+
+
 	
 	
 };
