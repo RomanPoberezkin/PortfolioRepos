@@ -5,6 +5,7 @@
 
 #include "CRMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "PortfolioProject/Core/Characters/CRBaseCharacter.h"
 #include "PortfolioProject/Core/Data/Utils/TraceUtils/TraceUtils.h"
 
@@ -48,13 +49,46 @@ bool UCRCharacterAttributeComponent::GetCanSprint()
 	}
 }
 
-bool UCRCharacterAttributeComponent::GetCanProne() const
+bool UCRCharacterAttributeComponent::GetCanProne()
 {
+	float ZOffset = CharacterOwner->GetCrouchingCapsuleZOffset();	
+	FVector Start = CharacterOwner->GetActorLocation();
+	Start.Z-=ZOffset;		
+	FVector BoxEtent = FVector( CharacterOwner->GetStandingCapsuleHalfHeight(),CharacterOwner->GetProneCapsuleHalfHeight()*2,  CharacterOwner->GetProneCapsuleHalfHeight() );
+
+	FRotator Rotation = CharacterOwner->GetActorRotation();
+	TArray<AActor*> Actors;
+	FHitResult HitResult;	
+	bool bResult =  UKismetSystemLibrary::BoxTraceSingle(GetWorld(),Start,Start, BoxEtent, Rotation, TraceTypeQuery1, false, Actors, EDrawDebugTrace::None, HitResult, true );
+	bIsCanProne=!bResult;
+	
 	return bIsCanProne;
 }
 
-bool UCRCharacterAttributeComponent::GetCanCrouch() const
+bool UCRCharacterAttributeComponent::GetCanCrouch()
 {
+	float CapsuleZOffset = 0;
+	if (CharacterOwner->GetIsProne())
+	{
+		CapsuleZOffset=CharacterOwner->GetProneCapsuleZOffset()+20;
+	}
+	
+	FHitResult HitResult;
+	FVector Location = CharacterOwner->GetActorLocation();
+	Location.Z +=CapsuleZOffset;
+	float CapsuleRadius = CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+	float CapsuleHalfHeight = CharacterOwner->GetCrouchingCapsuleHalfHeight();
+	FCollisionQueryParams QueryParams = FCollisionQueryParams::DefaultQueryParam;
+	FCollisionResponseParams ResponseParam = FCollisionResponseParams::DefaultResponseParam;
+	if (TraceUtils::SweepCapsuleSingleByChannel(GetWorld(), HitResult, Location, Location, CapsuleRadius, CapsuleHalfHeight, FQuat::Identity, ECC_Visibility, QueryParams, ResponseParam, NeedDebug, 1, FColor::Green, FColor::Black))
+	{
+		bIsCanCrouch=false;
+	}
+	else
+	{
+		bIsCanCrouch=true;
+	}
+	
 	return bIsCanCrouch;
 }
 
@@ -68,7 +102,7 @@ bool UCRCharacterAttributeComponent::GetCanStand()
 	
 	if (CharacterOwner->GetIsProne())
 	{
-		CapsuleZOffset=CharacterOwner->GetProneCapsuleZOffset()+30;
+		CapsuleZOffset=CharacterOwner->GetProneCapsuleZOffset()+50;
 	}
 	
 	FHitResult HitResult;
@@ -86,7 +120,6 @@ bool UCRCharacterAttributeComponent::GetCanStand()
 	{
 		bIsCanStand=true;
 	}
-
 	
 	return bIsCanStand;
 }

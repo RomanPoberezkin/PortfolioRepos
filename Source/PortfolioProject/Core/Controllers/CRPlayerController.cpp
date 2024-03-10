@@ -144,6 +144,10 @@ void ACRPlayerController::ForceStand()
 
 void ACRPlayerController::ChangeCrouchCondition()
 {
+	if (CharacterOwner->GetIsProne())
+	{
+		return;
+	}
 	if (CharacterOwner->GetIsCrouching())
 	{
 		EndCrouching();

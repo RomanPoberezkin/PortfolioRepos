@@ -48,8 +48,8 @@ void ACRBaseCharacter::SetCharacterDefaults()
 	CrouchingCapsuleHalfHeightOffset = (StandingCapsuleHalfHeight-CrouchCapsuleHalfHeight)*0.5;
 	CrouchingSpringArmZOffset = CrouchingCapsuleHalfHeightOffset;
 
-	ProneCapsuleHalfHeightOffset = (CrouchCapsuleHalfHeight-ProneCapsuleHalfHeight);
-	ProneSpringArmZOffset=ProneCapsuleHalfHeightOffset*0.5;
+	ProneCapsuleHalfHeightOffset = (CrouchCapsuleHalfHeight-ProneCapsuleHalfHeight)*0.5;
+	ProneSpringArmZOffset=ProneCapsuleHalfHeightOffset;
 }
 
 UCRMovementComponent* ACRBaseCharacter::GetCharacterMovementComponent() const
@@ -164,8 +164,7 @@ void ACRBaseCharacter::StandToCrouch()
 		FVector SpringArmOffset = SpringArmComponent->TargetOffset;
 		SpringArmOffset.Z -=CrouchingSpringArmZOffset;
 		SpringArmComponent->TargetOffset=SpringArmOffset;
-		
-		
+				
 		bIsCrouching=true;
 
 	}
@@ -204,7 +203,8 @@ void ACRBaseCharacter::CrouchToProne()
 		float NewWalkSpeed = AttributeComponent->GetCurrentProneSpeed();
 		CharacterMovementComponent->StartProne(NewWalkSpeed);
 		
-		//todo зменить апсулу и прочее
+		UCapsuleComponent* CurrentCapsuleComponent = GetCapsuleComponent();
+		CurrentCapsuleComponent->SetCapsuleHalfHeight(ProneCapsuleHalfHeight);
 		
 		bIsCrouching=false;
 		bIsProne = true;
@@ -221,6 +221,15 @@ void ACRBaseCharacter::ProneToCrouch()
 		float NewWalkSpeed = AttributeComponent->GetCurrentCrouchSpeed();
 		CharacterMovementComponent->EndProne(AttributeComponent->GetCurrentWalkSpeed());
 		CharacterMovementComponent->StartCrouching(NewWalkSpeed);
+
+		UCapsuleComponent* CurrentCapsuleComponent = GetCapsuleComponent();
+		CurrentCapsuleComponent->SetCapsuleHalfHeight(CrouchCapsuleHalfHeight);
+		
+		// USkeletalMeshComponent* CurrentSkeletalMeshComponent = GetMesh();
+		// FVector SkeletRelativeLocation =  CurrentSkeletalMeshComponent->GetRelativeLocation();
+		// SkeletRelativeLocation.Z +=(ProneCapsuleHalfHeightOffset*0.5);
+		// CurrentSkeletalMeshComponent->SetRelativeLocation(SkeletRelativeLocation);		
+		
 		bIsCrouching=true;
 		bIsProne = false;
 	}
@@ -240,11 +249,11 @@ void ACRBaseCharacter::ProneToStand()
 		
 		USkeletalMeshComponent* CurrentSkeletalMeshComponent = GetMesh();
 		FVector SkeletRelativeLocation =  CurrentSkeletalMeshComponent->GetRelativeLocation();
-		SkeletRelativeLocation.Z -=(ProneCapsuleHalfHeightOffset);//+CrouchingCapsuleHalfHeightOffset);
+		SkeletRelativeLocation.Z -=(ProneCapsuleHalfHeightOffset+10);//+CrouchingCapsuleHalfHeightOffset+10.0);
 		CurrentSkeletalMeshComponent->SetRelativeLocation(SkeletRelativeLocation);
 		
 		FVector SpringArmOffset = SpringArmComponent->TargetOffset;
-		SpringArmOffset.Z +=(ProneSpringArmZOffset+CrouchingSpringArmZOffset);
+		SpringArmOffset.Z +=CrouchingSpringArmZOffset;
 		SpringArmComponent->TargetOffset=SpringArmOffset;
 		
 		bIsProne = false;

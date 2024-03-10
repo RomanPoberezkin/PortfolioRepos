@@ -40,8 +40,8 @@ public:
 	//Condition getters
 	
 	bool GetCanSprint ();
-	bool GetCanProne () const;
-	bool GetCanCrouch() const;
+	bool GetCanProne ();
+	bool GetCanCrouch();
 	bool GetCanStand ();
 	bool GetCanJump ();
 	

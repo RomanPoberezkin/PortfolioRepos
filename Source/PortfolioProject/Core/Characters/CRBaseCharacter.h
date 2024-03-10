@@ -45,6 +45,7 @@ public:
 
 	float GetStandingCapsuleHalfHeight () const {return StandingCapsuleHalfHeight;}
 	float GetCrouchingCapsuleHalfHeight () const {return CrouchCapsuleHalfHeight;}
+	float GetProneCapsuleHalfHeight () const {return ProneCapsuleHalfHeight;}
 	float GetCrouchingCapsuleZOffset () const {return CrouchingCapsuleHalfHeightOffset;}
 	float GetProneCapsuleZOffset () const {return ProneCapsuleHalfHeightOffset;}
 
