@@ -4,7 +4,9 @@
 #include "CRCharacterAttributeComponent.h"
 
 #include "CRMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "PortfolioProject/Core/Characters/CRBaseCharacter.h"
+#include "PortfolioProject/Core/Data/Utils/TraceUtils/TraceUtils.h"
 
 
 // Sets default values for this component's properties
@@ -29,9 +31,89 @@ void UCRCharacterAttributeComponent::SetDefaults()
 	CurrentSprintSpeed=BaseSprintSpeed;
 	CurrentCrouchSpeed=BaseCrouchSpeed;
 	CurrentProneSpeed = BaseProneSpeed;
+	UnTiredSpeed=CurrentWalkSpeed;
 	
 }
 
+
+bool UCRCharacterAttributeComponent::GetCanSprint()
+{
+	if (!bIsStaminaEnd&&!bIsCrouched)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool UCRCharacterAttributeComponent::GetCanProne() const
+{
+	return bIsCanProne;
+}
+
+bool UCRCharacterAttributeComponent::GetCanCrouch() const
+{
+	return bIsCanCrouch;
+}
+
+bool UCRCharacterAttributeComponent::GetCanStand()
+{
+	float CapsuleZOffset = 0;
+	if (CharacterOwner->GetIsCrouching())
+	{
+		CapsuleZOffset = CharacterOwner->GetCrouchingCapsuleZOffset()+10;
+	}
+	
+	if (CharacterOwner->GetIsProne())
+	{
+		CapsuleZOffset=CharacterOwner->GetProneCapsuleZOffset()+30;
+	}
+	
+	FHitResult HitResult;
+	FVector Location = CharacterOwner->GetActorLocation();
+	Location.Z +=CapsuleZOffset;
+	float CapsuleRadius = CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+	float CapsuleHalfHeight = CharacterOwner->GetStandingCapsuleHalfHeight();
+	FCollisionQueryParams QueryParams = FCollisionQueryParams::DefaultQueryParam;
+	FCollisionResponseParams ResponseParam = FCollisionResponseParams::DefaultResponseParam;
+	if (TraceUtils::SweepCapsuleSingleByChannel(GetWorld(), HitResult, Location, Location, CapsuleRadius, CapsuleHalfHeight, FQuat::Identity, ECC_Visibility, QueryParams, ResponseParam, NeedDebug))
+	{
+		bIsCanStand=false;
+	}
+	else
+	{
+		bIsCanStand=true;
+	}
+
+	
+	return bIsCanStand;
+}
+
+bool UCRCharacterAttributeComponent::GetCanJump()
+{
+	if (!bIsStaminaEnd&&!bIsCrouched&&!bIsProne)
+	{
+		bIsCanJump=true;
+	}
+	else
+	{
+		bIsCanJump=false;
+	}
+	return bIsCanJump;
+}
+
+void UCRCharacterAttributeComponent::SwitchCrouchCondition(bool IsCrouch)
+{
+	bIsCrouched=IsCrouch;
+}
+
+void UCRCharacterAttributeComponent::SwitchProneCondition(bool IsProne)
+{
+	bIsCrouched=false;
+	bIsProne=IsProne;
+}
 
 // Called when the game starts
 void UCRCharacterAttributeComponent::BeginPlay()
@@ -73,9 +155,9 @@ void UCRCharacterAttributeComponent::UseStamina(float DeltaTime)
 		bIsStaminaEnd=true;
 		if (OnStaminaEndEvent.IsBound())
 		{
-			OnStaminaEndEvent.Broadcast(true);		
-
+			OnStaminaEndEvent.Broadcast(true);	
 		}
+		SwitchTired(true);
 	}
 	if (CurrentStamina>=MaxStamina)
 	{
@@ -84,10 +166,28 @@ void UCRCharacterAttributeComponent::UseStamina(float DeltaTime)
 		{
 			OnStaminaEndEvent.Broadcast(false);	
 		}
+		SwitchTired(false);
 	}
 	
 	
 
 	
+}
+
+void UCRCharacterAttributeComponent::SwitchTired(bool IsTired)
+{
+	bIsTired=IsTired;
+	if (IsTired)
+	{
+		UnTiredSpeed=CurrentWalkSpeed;
+		CurrentTiredSpeed=CurrentWalkSpeed*0.5;
+		CurrentWalkSpeed=CurrentTiredSpeed;
+	}
+	else if (!IsTired)
+	{
+		CurrentWalkSpeed=UnTiredSpeed;
+	}
+
+	CharacterOwner->SwitchTired(IsTired , CurrentWalkSpeed);
 }
 

@@ -4,6 +4,7 @@
 #include "CRPlayerController.h"
 
 #include "PortfolioProject/Core/Characters/CRBaseCharacter.h"
+#include "PortfolioProject/Core/Characters/Components/CRCharacterAttributeComponent.h"
 #include "PortfolioProject/Core/Characters/Components/CRMovementComponent.h"
 
 void ACRPlayerController::SetPawn(APawn* InPawn)
@@ -29,6 +30,11 @@ void ACRPlayerController::SetupInputComponent()
 	InputComponent->BindAction("Sprint", IE_Released, this , &ACRPlayerController::EndSprint);
 	
 	InputComponent->BindAction("Jump", IE_Pressed, this , &ACRPlayerController::Jump);
+	InputComponent->BindAction("ForceStand", IE_Pressed, this , &ACRPlayerController::ForceStand);
+
+	InputComponent->BindAction("Crouch", IE_Pressed, this , &ACRPlayerController::ChangeCrouchCondition);
+	InputComponent->BindAction("Prone", IE_Pressed, this , &ACRPlayerController::ChangeProneCondition);
+
 
 
 	
@@ -91,12 +97,73 @@ void ACRPlayerController::Jump()
 	}	
 }
 
-void ACRPlayerController::Sprint(bool bIsSprinting)
+void ACRPlayerController::StartCrouching()
+{
+	if (CharacterOwner&&!CharacterOwner->GetAttributeComponent()->GetIsCrouched())
+	{
+		CharacterOwner->StandToCrouch();
+		bIsCrouching = true;
+
+	}	
+}
+
+void ACRPlayerController::EndCrouching()
 {
 	if (CharacterOwner)
 	{
-		
-	}
+		CharacterOwner->CrouchToStand();
+		bIsCrouching=false;
+
+	}	
+}
+
+void ACRPlayerController::StartProne()
+{
 	
+	if (CharacterOwner && CharacterOwner->GetIsCrouching())
+	{
+		CharacterOwner->CrouchToProne();
+	}
+}
+
+void ACRPlayerController::EndProne()
+{
+	if (CharacterOwner)
+	{
+		CharacterOwner->ProneToCrouch();
+	}
+}
+
+void ACRPlayerController::ForceStand()
+{
+	if (CharacterOwner&&CharacterOwner->GetIsProne())
+	{
+		CharacterOwner->ProneToStand();
+	}
+}
+
+void ACRPlayerController::ChangeCrouchCondition()
+{
+	if (CharacterOwner->GetIsCrouching())
+	{
+		EndCrouching();
+	}
+	else
+	{
+		StartCrouching();
+	}
+}
+
+void ACRPlayerController::ChangeProneCondition()
+{
+	
+	if (CharacterOwner->GetIsProne())
+	{
+		EndProne();
+	}
+	else
+	{
+		StartProne();
+	}
 }
 

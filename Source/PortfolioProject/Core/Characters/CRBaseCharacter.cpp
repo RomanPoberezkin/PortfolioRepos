@@ -3,6 +3,7 @@
 
 #include "CRBaseCharacter.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/CRCharacterAttributeComponent.h"
 #include "Components/CRMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -24,6 +25,9 @@ ACRBaseCharacter::ACRBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	SpringArmComponent=CreateDefaultSubobject<USpringArmComponent>(TEXT ("Spring Arm"));
 	SpringArmComponent->SetupAttachment(RootComponent);
+	FVector SpringArmOffset = SpringArmComponent->TargetOffset;
+	SpringArmOffset.Z +=SpringArmZOffset;
+	SpringArmComponent->TargetOffset=SpringArmOffset;	
 	SpringArmComponent->bUsePawnControlRotation= true;
 	
 	CameraComponent=CreateDefaultSubobject<UCameraComponent>(TEXT ("Follow Camera"));
@@ -35,7 +39,17 @@ ACRBaseCharacter::ACRBaseCharacter(const FObjectInitializer& ObjectInitializer)
 
 	
 
-	
+	SetCharacterDefaults();
+}
+
+void ACRBaseCharacter::SetCharacterDefaults()
+{
+	StandingCapsuleHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+	CrouchingCapsuleHalfHeightOffset = (StandingCapsuleHalfHeight-CrouchCapsuleHalfHeight)*0.5;
+	CrouchingSpringArmZOffset = CrouchingCapsuleHalfHeightOffset;
+
+	ProneCapsuleHalfHeightOffset = (CrouchCapsuleHalfHeight-ProneCapsuleHalfHeight);
+	ProneSpringArmZOffset=ProneCapsuleHalfHeightOffset*0.5;
 }
 
 UCRMovementComponent* ACRBaseCharacter::GetCharacterMovementComponent() const
@@ -64,6 +78,8 @@ void ACRBaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+
 
 void ACRBaseCharacter::MoveForward(float Value)
 {
@@ -100,13 +116,16 @@ void ACRBaseCharacter::LookUp(float Value)
 
 void ACRBaseCharacter::Jump()
 {
-	Super::Jump();
+	if (AttributeComponent->GetCanJump())
+	{
+		Super::Jump();
+	}
 }
 
 void ACRBaseCharacter::StartSprint()
 {
-	if (!AttributeComponent->GetIsStaminaEnd())
-	{
+	if (!AttributeComponent->GetIsStaminaEnd() && AttributeComponent->GetCanSprint())
+	{		
 		float NewSpeed = AttributeComponent->GetCurrentSprintSpeed();
 		GetCharacterMovementComponent()->ChangeSprintCondition(true, NewSpeed);
 	}
@@ -119,11 +138,125 @@ void ACRBaseCharacter::EndSprint()
 	GetCharacterMovementComponent()->ChangeSprintCondition(false, NewSpeed);
 }
 
-void ACRBaseCharacter::ChangeSprintCondition(bool bISSprinting)
-{
 
-	
+
+void ACRBaseCharacter::SwitchTired(bool bISTired, float NewWalkSpeed)
+{
+	GetCharacterMovementComponent()->ChangeTiredCondition(bISTired, NewWalkSpeed);
+}
+
+void ACRBaseCharacter::StandToCrouch()
+{
+	if (AttributeComponent->GetCanCrouch())
+	{
+		AttributeComponent->SwitchCrouchCondition(true);
+		float NewWalkSpeed = AttributeComponent->GetCurrentCrouchSpeed();
+		CharacterMovementComponent->StartCrouching(NewWalkSpeed);
+
+		UCapsuleComponent* CurrentCapsuleComponent = GetCapsuleComponent();
+		CurrentCapsuleComponent->SetCapsuleHalfHeight(CrouchCapsuleHalfHeight);
 		
+		USkeletalMeshComponent* CurrentSkeletalMeshComponent = GetMesh();
+		FVector SkeletRelativeLocation =  CurrentSkeletalMeshComponent->GetRelativeLocation();
+		SkeletRelativeLocation.Z +=CrouchingCapsuleHalfHeightOffset;
+		CurrentSkeletalMeshComponent->SetRelativeLocation(SkeletRelativeLocation);
+
+		FVector SpringArmOffset = SpringArmComponent->TargetOffset;
+		SpringArmOffset.Z -=CrouchingSpringArmZOffset;
+		SpringArmComponent->TargetOffset=SpringArmOffset;
+		
+		
+		bIsCrouching=true;
+
+	}
+}
+
+void ACRBaseCharacter::CrouchToStand()
+{
+	if (AttributeComponent->GetCanStand())
+	{
+		AttributeComponent->SwitchCrouchCondition(false);
+		float NewWalkSpeed = AttributeComponent->GetCurrentWalkSpeed();
+		CharacterMovementComponent->EndCrouching(NewWalkSpeed);
+		
+		UCapsuleComponent* CurrentCapsuleComponent = GetCapsuleComponent();
+		CurrentCapsuleComponent->SetCapsuleHalfHeight(StandingCapsuleHalfHeight);
+		
+		USkeletalMeshComponent* CurrentSkeletalMeshComponent = GetMesh();
+		FVector SkeletRelativeLocation =  CurrentSkeletalMeshComponent->GetRelativeLocation();
+		SkeletRelativeLocation.Z -=CrouchingCapsuleHalfHeightOffset;
+		CurrentSkeletalMeshComponent->SetRelativeLocation(SkeletRelativeLocation);
+		
+		FVector SpringArmOffset = SpringArmComponent->TargetOffset;
+		SpringArmOffset.Z +=CrouchingSpringArmZOffset;
+		SpringArmComponent->TargetOffset=SpringArmOffset;
+
+		bIsCrouching = false;
+
+	}
+}
+
+void ACRBaseCharacter::CrouchToProne()
+{
+	if (AttributeComponent->GetCanProne())
+	{
+		AttributeComponent->SwitchProneCondition(true);
+		float NewWalkSpeed = AttributeComponent->GetCurrentProneSpeed();
+		CharacterMovementComponent->StartProne(NewWalkSpeed);
+		
+		//todo зменить апсулу и прочее
+		
+		bIsCrouching=false;
+		bIsProne = true;
+
+	}
+}
+
+void ACRBaseCharacter::ProneToCrouch()
+{
+	if (AttributeComponent->GetCanCrouch())
+	{
+		AttributeComponent->SwitchProneCondition(false);
+		AttributeComponent->SwitchCrouchCondition(true);
+		float NewWalkSpeed = AttributeComponent->GetCurrentCrouchSpeed();
+		CharacterMovementComponent->EndProne(AttributeComponent->GetCurrentWalkSpeed());
+		CharacterMovementComponent->StartCrouching(NewWalkSpeed);
+		bIsCrouching=true;
+		bIsProne = false;
+	}
+}
+
+void ACRBaseCharacter::ProneToStand()
+{
+	if (AttributeComponent->GetCanStand())
+	{
+		AttributeComponent->SwitchProneCondition(false);
+		float NewWalkSpeed = AttributeComponent->GetCurrentWalkSpeed();
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, FString::Printf(TEXT("Speed is %f"),NewWalkSpeed));
+		CharacterMovementComponent->EndProne(NewWalkSpeed);
+		
+		UCapsuleComponent* CurrentCapsuleComponent = GetCapsuleComponent();
+		CurrentCapsuleComponent->SetCapsuleHalfHeight(StandingCapsuleHalfHeight);
+		
+		USkeletalMeshComponent* CurrentSkeletalMeshComponent = GetMesh();
+		FVector SkeletRelativeLocation =  CurrentSkeletalMeshComponent->GetRelativeLocation();
+		SkeletRelativeLocation.Z -=(ProneCapsuleHalfHeightOffset);//+CrouchingCapsuleHalfHeightOffset);
+		CurrentSkeletalMeshComponent->SetRelativeLocation(SkeletRelativeLocation);
+		
+		FVector SpringArmOffset = SpringArmComponent->TargetOffset;
+		SpringArmOffset.Z +=(ProneSpringArmZOffset+CrouchingSpringArmZOffset);
+		SpringArmComponent->TargetOffset=SpringArmOffset;
+		
+		bIsProne = false;
+	}
+	else if (AttributeComponent->GetCanCrouch())
+	{
+		ProneToCrouch();
+	}
+	else
+	{		
+		return;
+	}
 }
 
 void ACRBaseCharacter::StaminaEnd(bool StaminaEnd)

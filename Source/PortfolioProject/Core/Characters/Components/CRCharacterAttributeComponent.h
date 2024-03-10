@@ -27,15 +27,42 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentStamina () const {return CurrentStamina;}
+	
 
+	
 	//Speed Getters
 	
 	float GetCurrentWalkSpeed () const {return  CurrentWalkSpeed;}
 	float GetCurrentSprintSpeed () const {return  CurrentSprintSpeed;}
+	float GetCurrentCrouchSpeed () const {return  CurrentCrouchSpeed;}
+	float GetCurrentProneSpeed () const {return  CurrentProneSpeed;}
+
+	//Condition getters
+	
+	bool GetCanSprint ();
+	bool GetCanProne () const;
+	bool GetCanCrouch() const;
+	bool GetCanStand ();
+	bool GetCanJump ();
+	
+	bool GetIsTired () const {return bIsTired;}
+	bool GetIsCrouched () const {return bIsCrouched;}
+
+	//Crouch
+
+	void SwitchCrouchCondition (bool IsCrouch);
+	void SwitchProneCondition (bool IsProne);
+
+	
+
 	
 protected:
 	// Called when the game starts
-	virtual void BeginPlay() override;	
+	virtual void BeginPlay() override;
+
+	UPROPERTY (EditDefaultsOnly, BlueprintReadOnly, Category = "DEBUG")
+	bool NeedDebug = false;
+
 
 	UPROPERTY (EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes | Stamina", meta = (ClampMin=0.0, UIMin = 0.0))
 	float MaxStamina = 100.0f;
@@ -53,7 +80,7 @@ protected:
 	float BaseSprintSpeed = 1000.0f;
 
 	UPROPERTY (EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes | Speed", meta = (ClampMin=0.0, UIMin = 0.0))
-	float BaseCrouchSpeed=300;
+	float BaseCrouchSpeed=150;
 
 	UPROPERTY (EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes | Speed", meta = (ClampMin=0.0, UIMin = 0.0))
 	float BaseProneSpeed = 150;
@@ -75,15 +102,37 @@ private:
 	//Stamina
 
 	void UseStamina (float DeltaTime);
+	void SwitchTired (bool IsTired);
 	bool bIsStaminaEnd = false;
+	bool bIsTired = false;
+
+	//Crouch
+
+	bool bIsCrouched = false;
+
+	//Prone
+
+	bool bIsProne = false;
+
 
 	//Speed
 
 	float CurrentWalkSpeed;
 	float CurrentSprintSpeed;
+	float CurrentUncrouchSpeed; //not used yet
 	float CurrentCrouchSpeed;
 	float CurrentProneSpeed;
+	float CurrentTiredSpeed;
+	float UnTiredSpeed;
 
+	
+
+	bool bIsCanSprint = true;
+	bool bIsCanCrouch = true;
+	bool bIsCanProne = true;
+	bool bIsCanStand = true;
+	bool bIsCanJump = true;
+	
 
 	
 	

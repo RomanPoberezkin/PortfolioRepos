@@ -40,12 +40,22 @@ protected:
 	void StartSprint ();
 	void EndSprint ();
 	void Jump ();
+	void StartCrouching ();
+	void EndCrouching();
+	void StartProne ();
+	void EndProne ();
+	void ForceStand ();
+	
 	
 
 	
 private:
 	
-	void Sprint (bool bIsSprinting);
+	// void Sprint (bool bIsSprinting);
+
+	bool bIsCrouching;
+	void ChangeCrouchCondition ();
+	void ChangeProneCondition ();
 	
 	
 	

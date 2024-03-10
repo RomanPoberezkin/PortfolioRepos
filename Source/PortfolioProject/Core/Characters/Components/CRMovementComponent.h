@@ -15,12 +15,23 @@ class PORTFOLIOPROJECT_API UCRMovementComponent : public UCharacterMovementCompo
 	GENERATED_BODY()
 
 public:
+
+	virtual float GetMaxSpeed() const override;
 	
 	float GetCurrentMaxWalkSpeed () const {return MaxWalkSpeed;}
-	bool GetIsSprinting () const {return bIsSprintingCondition;}
+	bool GetIsSprinting () const {return bIsSprinting;}
 
-	void ChangeSprintCondition (bool bIsSprinting=false, float NewSpeed=0.0f);
+	void ChangeSprintCondition (bool IsSprinting=false, float NewSpeed=0.0f);
 	void SetDefaultMaxWalkSpeed (float NewSpeed);
+
+	void ChangeTiredCondition (bool IsTired, float NewWalkSpeed);
+
+	void StartCrouching (float NewWalkSpeed);
+	void EndCrouching (float NewWalkSpeed);
+
+	void StartProne (float NewWalkSpeed);
+	void EndProne (float NewWalkSpeed);
+
 
 
 	
@@ -32,9 +43,22 @@ protected:
 
 private:
 
-	bool bIsSprintingCondition = false;
+	bool bIsSprinting = false;
+	bool bIsCrouching = false;
+	bool bIsWalking = true;
+	bool bIsTired = false;
+	bool bIsProne = false;
 
+	//Speed
 	float BaseWalkSpeed;
+	float CurrentSprintSpeed;
+	float CurrentCrouchingSpeed;
+	float CurrentProneSpeed;
+	float CurrentWalkingSpeed;
+	float CurrentTiredSpeed;
+
+
+
 
 	
 };
