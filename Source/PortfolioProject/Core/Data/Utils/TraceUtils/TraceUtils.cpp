@@ -1,12 +1,12 @@
 #include "TraceUtils.h"
 #include  "DrawDebugHelpers.h"
-
+#include "Kismet/KismetSystemLibrary.h"
 
 
 bool TraceUtils::SweepCapsuleSingleByChannel(const UWorld* World, FHitResult& OutHit, const FVector& Start,
-	const FVector& End, float CapsuleRadius, float CapsuleHalfHight, const FQuat& Rot, ECollisionChannel TraceChannel,
-	const FCollisionQueryParams& Params, const FCollisionResponseParams& ResponseParam, bool bDrawDebug, float DrawTime,
-	FColor TraceColor, FColor HitColor)
+                                             const FVector& End, float CapsuleRadius, float CapsuleHalfHight, const FQuat& Rot, ECollisionChannel TraceChannel,
+                                             const FCollisionQueryParams& Params, const FCollisionResponseParams& ResponseParam, bool bDrawDebug, float DrawTime,
+                                             FColor TraceColor, FColor HitColor)
 {
 	bool bResult = false;
 
@@ -97,4 +97,19 @@ bool TraceUtils::OverlapCapsuleBlockingByProfile(const UWorld* World, const FVec
 #endif
 	
 	return bResult;
+}
+
+bool TraceUtils::BoxTraceByChannel(const UWorld* World, const FVector Start, const FVector End, const FVector HalfSize,
+	const FRotator BoxRotation, FHitResult& HitResult, const TArray<AActor*>& ActorsToIgnore, bool bIgnoreSelf, bool TraceComplex,
+	bool DrawDebug, float DrawTime, ETraceTypeQuery TraceChannel, FLinearColor TraceColor, FLinearColor TraceHitColor)
+{
+	bool Result;
+	EDrawDebugTrace::Type DrawTrace;
+	DrawTrace = DrawDebug? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
+
+	Result =  UKismetSystemLibrary::BoxTraceSingle(World,Start,End, HalfSize, BoxRotation, TraceChannel, TraceComplex, ActorsToIgnore, DrawTrace, HitResult, bIgnoreSelf, TraceColor, TraceHitColor, DrawTime );
+
+
+
+	return Result;
 }

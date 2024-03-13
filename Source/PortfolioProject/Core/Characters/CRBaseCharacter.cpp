@@ -241,7 +241,6 @@ void ACRBaseCharacter::ProneToStand()
 	{
 		AttributeComponent->SwitchProneCondition(false);
 		float NewWalkSpeed = AttributeComponent->GetCurrentWalkSpeed();
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, FString::Printf(TEXT("Speed is %f"),NewWalkSpeed));
 		CharacterMovementComponent->EndProne(NewWalkSpeed);
 		
 		UCapsuleComponent* CurrentCapsuleComponent = GetCapsuleComponent();

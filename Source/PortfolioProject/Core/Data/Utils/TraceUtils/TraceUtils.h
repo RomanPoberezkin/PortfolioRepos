@@ -11,5 +11,5 @@ namespace TraceUtils
 	
 	bool OverlapCapsuleBlockingByProfile (const UWorld* World, const FVector& Position, float CapsuleRadius, float CapsuleHalfHeight, FQuat Rotation, FName ProfileName, const FCollisionQueryParams& QueryParams, bool bDrawDebug = false, float DrawTime = 0.1f, FColor HitColor = FColor::Red);
 
-
+	bool BoxTraceByChannel (const UWorld* World, const FVector Start, const FVector End, const FVector HalfSize, const FRotator BoxRotation, FHitResult& HitResult, const TArray<AActor*>& ActorsToIgnore, bool bIgnoreSelf = true, bool TraceComplex = false, bool DrawDebug = true, float DrawTime = 1, ETraceTypeQuery TraceChannel = TraceTypeQuery1,  FLinearColor TraceColor = FColor::Green, FLinearColor TraceHitColor = FColor::Red );
 }

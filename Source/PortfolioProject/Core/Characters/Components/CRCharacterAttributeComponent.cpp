@@ -5,7 +5,6 @@
 
 #include "CRMovementComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "PortfolioProject/Core/Characters/CRBaseCharacter.h"
 #include "PortfolioProject/Core/Data/Utils/TraceUtils/TraceUtils.h"
 
@@ -51,15 +50,17 @@ bool UCRCharacterAttributeComponent::GetCanSprint()
 
 bool UCRCharacterAttributeComponent::GetCanProne()
 {
-	float ZOffset = CharacterOwner->GetCrouchingCapsuleZOffset();	
+	
+	float ZOffset = CharacterOwner->GetCrouchingCapsuleZOffset(); //смещение вниз до уровня центра капсулы в положении лежа	
 	FVector Start = CharacterOwner->GetActorLocation();
 	Start.Z-=ZOffset;		
-	FVector BoxEtent = FVector( CharacterOwner->GetStandingCapsuleHalfHeight(),CharacterOwner->GetProneCapsuleHalfHeight()*2,  CharacterOwner->GetProneCapsuleHalfHeight() );
+	FVector BoxEtent = FVector( CharacterOwner->GetStandingCapsuleHalfHeight(),CharacterOwner->GetProneCapsuleHalfHeight()*2,  CharacterOwner->GetProneCapsuleHalfHeight());
 
 	FRotator Rotation = CharacterOwner->GetActorRotation();
 	TArray<AActor*> Actors;
-	FHitResult HitResult;	
-	bool bResult =  UKismetSystemLibrary::BoxTraceSingle(GetWorld(),Start,Start, BoxEtent, Rotation, TraceTypeQuery1, false, Actors, EDrawDebugTrace::None, HitResult, true );
+	FHitResult HitResult;
+
+	bool bResult = TraceUtils::BoxTraceByChannel(GetWorld(), Start, Start, BoxEtent, Rotation, HitResult, Actors, true, false, NeedDebug);
 	bIsCanProne=!bResult;
 	
 	return bIsCanProne;
